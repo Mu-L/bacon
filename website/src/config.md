@@ -197,6 +197,7 @@ scroll-pages(-1) | <kbd>PageUp</kbd> | move one page up
 scroll-pages(1) | <kbd>PageDown</kbd> | move one page down
 scroll-to-bottom | <kbd>End</kbd> | scroll to bottom
 scroll-to-top | <kbd>Home</kbd> | scroll to top
+show-item(n) | | scroll to display the diagnostic item with index n at the top
 toggle pause | <kbd>p</kbd> | toggle pause
 toggle-backtrace(level) | <kbd>b</kbd> | enable rust backtrace, level is either `0`, `1`, `2`, or `full`
 toggle-raw-output |  | display the untransformed command output
@@ -252,6 +253,36 @@ line_format = "{kind} {path}:{line}:{column} {message}"
 ```
 
 This export works for any tool and any job.
+
+### Available template variables
+
+The following variables can be used in `line_format`:
+
+variable | meaning
+:-|:-
+`{kind}` | the diagnostic kind: `error`, `warning`, or `test`
+`{job}` | the job name (e.g., `check`, `clippy`, `test`)
+`{item-idx}` | the diagnostic item index (1, 2, ...)
+`{path}` | absolute file path
+`{line}` | line number
+`{column}` | column number (defaults to 1 if not available)
+`{message}` | the diagnostic message
+`{context}` | the full diagnostic context (all lines for the item)
+
+Example with all variables:
+
+```TOML
+[exports.locations]
+auto = true
+path = ".bacon-locations"
+line_format = "{kind}@{job}[{item-idx}] {path}:{line}:{column} {message}"
+```
+
+This would produce output like:
+```
+error@clippy[1] /path/to/file.rs:42:5 mismatched types
+warning@clippy[2] /path/to/file.rs:10:1 unused variable
+```
 
 ## Cargo Spans export
 

@@ -413,6 +413,9 @@ fn run_mission(
                 Action::Scroll(scroll_command) => {
                     mission_state.apply_scroll_command(scroll_command);
                 }
+                Action::ShowItem(show_item_command) => {
+                    mission_state.show_item(&show_item_command);
+                }
                 Action::ToggleBacktrace(level) => {
                     mission_state.toggle_backtrace(level);
                     rerun = true;
