@@ -1,3 +1,6 @@
+### next
+- add a `clear-output` action - Fix #419
+
 <a name="v3.23.0"></a>
 ### v3.23.0 - 2026/05/22
 - `scroll_anchor` decides whether the scroll initially sticks with the `first` item (most common setting), with the `last` one, or to show most recent output lines unless there are errors in which case it show first items (by default in `run` jobs with `auto`) - Fix #384
