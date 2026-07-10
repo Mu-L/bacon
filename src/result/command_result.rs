@@ -26,7 +26,7 @@ impl CommandResult {
         mut report: Report,
     ) -> Result<Self> {
         let error_code = exit_status.code().filter(|&c| c != 0);
-        debug!("report stats: {:?}", &report.stats);
+        debug!("report stats: {:?}", report.stats);
         if let Some(error_code) = error_code {
             let stats = &report.stats;
             if stats.errors + stats.test_fails + stats.warnings == 0 {

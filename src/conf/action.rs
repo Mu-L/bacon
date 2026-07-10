@@ -169,7 +169,7 @@ impl fmt::Display for Action {
         match self {
             Self::Back => write!(f, "back"),
             Self::BackOrQuit => write!(f, "back-or-quit"),
-            Self::ClearOutput => write!(f, "clear output"),
+            Self::ClearOutput => write!(f, "clear-output"),
             Self::CopyUnstyledOutput => write!(f, "copy-unstyled-output"),
             Self::DismissTop => write!(f, "dismiss-top"),
             Self::DismissTopItem => write!(f, "dismiss-top-item"),

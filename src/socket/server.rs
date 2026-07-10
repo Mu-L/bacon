@@ -29,7 +29,7 @@ impl Server {
         let path = context.unix_socket_path();
         if fs::metadata(&path).is_ok() {
             fs::remove_file(&path)
-                .with_context(|| format!("Failed to remove socket file {}", &path.display()))?;
+                .with_context(|| format!("Failed to remove socket file {}", path.display()))?;
         }
         let listener = UnixListener::bind(&path)?;
         info!("listening on {}", path.display());
@@ -48,7 +48,7 @@ impl Server {
                         while line.ends_with('\n') || line.ends_with('\r') {
                             line.pop();
                         }
-                        debug!("line => {:?}", &line);
+                        debug!("line => {:?}", line);
                         if line.is_empty() {
                             debug!("empty line, closing connection");
                             break;
