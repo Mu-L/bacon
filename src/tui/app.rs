@@ -89,7 +89,7 @@ pub fn run(
             &mut app_state,
             mission,
             event_source.as_ref(),
-            action_rx.clone(),
+            &action_rx,
             message.take(),
         )?;
         match do_after {
@@ -119,7 +119,7 @@ fn run_mission(
     app_state: &mut AppState,
     mission: Mission,
     event_source: Option<&EventSource>,
-    action_rx: Receiver<Action>,
+    action_rx: &Receiver<Action>,
     message: Option<Message>,
 ) -> Result<DoAfterMission> {
     let headless = app_state.headless;

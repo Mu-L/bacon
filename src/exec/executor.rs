@@ -91,7 +91,7 @@ impl MissionExecutor {
     ///
     /// # Panics
     ///
-    /// Will panic if the MissionBuilder doesn't pipe stderr
+    /// Will panic if the `MissionBuilder` doesn't pipe stderr
     pub fn start(
         &mut self,
         task: Task,

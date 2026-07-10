@@ -1,6 +1,6 @@
 use crate::*;
 
-/// A wrapped cmd_output, only valid for the `cmd_output` it was computed for,
+/// A wrapped `cmd_output`, only valid for the `cmd_output` it was computed for,
 /// contains references to the start and end of lines wrapped for a
 /// given width
 pub struct WrappedCommandOutput {

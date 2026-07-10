@@ -20,7 +20,7 @@ pub struct HelpLine {
 }
 
 impl HelpLine {
-    /// Create a new HelpLine based on the provided settings.
+    /// Create a new `HelpLine` based on the provided settings.
     ///
     /// # Panics
     /// Panics if there is no keybinding for quitting the application.
