@@ -54,11 +54,13 @@ pub fn run(
     let event_source = if headless {
         // in headless mode, in some contexts, ctrl-c might not be enough to kill
         // bacon so we add this handler
-        ctrlc::set_handler(move || {
+        let ctrlc_res = ctrlc::set_handler(move || {
             eprintln!("bye");
             std::process::exit(0);
-        })
-        .expect("Error setting Ctrl-C handler");
+        });
+        if let Err(e) = ctrlc_res {
+            error!("failed to set Ctrl-C handler: {e}");
+        }
         None
     } else {
         Some(EventSource::with_options(EventSourceOptions {
@@ -87,7 +89,7 @@ pub fn run(
             &mut app_state,
             mission,
             event_source.as_ref(),
-            action_rx.clone(),
+            &action_rx,
             message.take(),
         )?;
         match do_after {
@@ -117,7 +119,7 @@ fn run_mission(
     app_state: &mut AppState,
     mission: Mission,
     event_source: Option<&EventSource>,
-    action_rx: Receiver<Action>,
+    action_rx: &Receiver<Action>,
     message: Option<Message>,
 ) -> Result<DoAfterMission> {
     let headless = app_state.headless;
@@ -293,6 +295,10 @@ fn run_mission(
                     if !mission_state.back() {
                         mission_end = Some(DoAfterMission::NextJob(JobRef::PreviousOrQuit));
                     }
+                }
+                Action::ClearOutput => {
+                    info!("clearing output");
+                    mission_state.clear_output();
                 }
                 Action::CopyUnstyledOutput => {
                     mission_state.copy_unstyled_output();

@@ -43,8 +43,17 @@ impl CommandResult {
             }
         }
         report.output = output;
+        report.error_code = error_code;
         // report looks valid
         Ok(Self::Report(report))
+    }
+
+    pub fn clear(&mut self) {
+        match self {
+            Self::Report(report) => report.clear_output(),
+            Self::Failure(failure) => failure.clear_output(),
+            Self::None => {}
+        }
     }
 
     pub fn output(&self) -> Option<&CommandOutput> {
