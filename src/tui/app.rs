@@ -340,7 +340,7 @@ fn run_mission(
                         .do_named_export(&export_name, &mission_state);
                     mission_state
                         .messages
-                        .push(Message::short(format!("Export *{}* done", &export_name)));
+                        .push(Message::short(format!("Export *{}* done", export_name)));
                 }
                 Action::FocusFile(focus_file_command) => {
                     mission_state.focus_file(&focus_file_command);
