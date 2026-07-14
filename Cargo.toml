@@ -1,15 +1,15 @@
 [package]
 name = "bacon"
-version = "3.23.0"
+version = "3.24.0"
 authors = ["dystroy <denys.seguret@gmail.com>"]
 repository = "https://github.com/Canop/bacon"
 description = "background rust compiler"
-edition = "2021"
+edition = "2024"
 keywords = ["rust", "background", "compiler", "watch", "inotify"]
 license = "AGPL-3.0"
 categories = ["command-line-utilities", "development-tools"]
 readme = "README.md"
-rust-version = "1.77"
+rust-version = "1.85"
 
 [features]
 default = []
