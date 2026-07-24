@@ -1,3 +1,6 @@
+### next
+- fix crash in search on multibyte char in pattern and wrapped output - Fix #446
+
 <a name="v3.24.0"></a>
 ### v3.24.0 - 2026/07/14
 - MSRV changed from 1.77 to 1.85
