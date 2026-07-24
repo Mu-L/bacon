@@ -4,10 +4,10 @@
 ddoc
 
 # copy the site to the deployement stage
-cp -r site/* ~/dev/www/dystroy/bacon/
+cp -r site/* $HOME/dev/www/dystroy/bacon/
 
 # build the config schema
-bacon --generate-config-schema > ~/dev/www/dystroy/bacon/.bacon.schema.json
+bacon --generate-config-schema > $HOME/dev/www/dystroy/bacon/.bacon.schema.json
 
 # deploy on dystroy.org
-~/dev/www/dystroy/deploy.sh
+$HOME/dev/www/dystroy/deploy.sh
