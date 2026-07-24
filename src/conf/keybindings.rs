@@ -61,7 +61,6 @@ impl Default for KeyBindings {
         bindings.set(key!(enter), Action::Validate);
         bindings.set(key!(tab), Action::NextMatch);
         bindings.set(key!(backtab), Action::PreviousMatch);
-        bindings.set(key!(shift - backtab), Action::PreviousMatch);
         bindings.set(key!(ctrl - j), Action::OpenJobsMenu);
 
         // keybindings for some common jobs
@@ -217,4 +216,34 @@ fn test_deserialize_keybindings() {
         Some(&Action::Job(JobRef::Previous)),
     );
     assert_eq!(conf.keybindings.get(key!(cmd - e)), Some(&Action::Quit),);
+}
+
+/// The backtab key (Shift+Tab) is emitted by crossterm as `BackTab` with the
+/// SHIFT modifier. Check that our binding matches that event, is displayed as
+/// "BackTab", and can be disabled from the config using the human name.
+#[test]
+fn test_backtab_binding() {
+    use crokey::crossterm::event::{
+        KeyCode,
+        KeyEvent,
+        KeyModifiers,
+    };
+
+    // the combination actually received when the user presses Shift+Tab
+    let event = KeyCombination::from(KeyEvent::new(KeyCode::BackTab, KeyModifiers::SHIFT));
+    assert_eq!(event, key!(backtab));
+    assert_eq!(event.to_string(), "BackTab");
+
+    let defaults = KeyBindings::default();
+    assert_eq!(defaults.get(event), Some(&Action::PreviousMatch));
+
+    // the user can disable it by its human name
+    #[derive(Deserialize)]
+    struct Config {
+        keybindings: KeyBindings,
+    }
+    let conf = toml::from_str::<Config>("[keybindings]\nbacktab = \"no-op\"\n").unwrap();
+    let mut bindings = KeyBindings::default();
+    bindings.add_all(&conf.keybindings);
+    assert_eq!(bindings.get(event), Some(&Action::NoOp));
 }
