@@ -1,5 +1,6 @@
 ### next
 - fix crash in search on multibyte char in pattern and wrapped output - Fix #446
+- fix crash of search when output grows - Fix #447
 
 <a name="v3.24.0"></a>
 ### v3.24.0 - 2026/07/14
