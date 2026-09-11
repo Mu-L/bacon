@@ -1,4 +1,12 @@
+#!/usr/bin/env bash
+#
 # This script is dedicated to the official documentation site at https://dystroy.org/bacon
+
+set -Eeuo pipefail
+cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+command -v ddoc >/dev/null || { echo "ddoc not found — see https://dystroy.org/ddoc" >&2; exit 1; }
+command -v bacon >/dev/null || { echo "bacon not found — needed for the config schema" >&2; exit 1; }
 
 # build the documentation site
 ddoc
