@@ -41,6 +41,11 @@ use {
     crate::W,
     anyhow::Result,
     std::io::Write,
+    termimad::crossterm::style::{
+        Color,
+        SetBackgroundColor,
+        SetForegroundColor,
+    },
 };
 
 pub use {
@@ -62,9 +67,18 @@ pub fn draw(
     }
     Ok(())
 }
+/// CSI sequence for bold text with the given foreground and background colors
 pub fn csi(
-    fg: u8,
-    bg: u8,
+    fg: Color,
+    bg: Color,
 ) -> String {
-    format!("\u{1b}[1m\u{1b}[38;5;{fg}m\u{1b}[48;5;{bg}m")
+    format!(
+        "{CSI_BOLD}{}{}",
+        SetForegroundColor(fg),
+        SetBackgroundColor(bg)
+    )
+}
+/// CSI sequence for bold text with the given foreground color
+pub fn csi_bold_fg(fg: Color) -> String {
+    format!("{CSI_BOLD}{}", SetForegroundColor(fg))
 }

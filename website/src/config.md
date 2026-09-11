@@ -83,7 +83,7 @@ command | the tokens making the command to execute (first one is the executable)
 default_watch | whether to watch default files (`src`, `tests`, `examples`, `build.rs`, and `benches`). When it's set to `false`, only the files in your `watch` parameter are watched | `true`
 env | a map of environment vars, for example `env.LOG_LEVEL="die"` |
 hide_scrollbar | whether to hide the scrollbar (for easier select & copy) | `false`
-kill | a command replacing the default job interruption (platform dependant, `SIGKILL` on unix). For example `kill = ["kill", "-s", "INT"]` |
+kill | a command replacing the default job interruption (platform dependent, `SIGKILL` on unix). For example `kill = ["kill", "-s", "INT"]` |
 ignore | list of glob patterns for files to ignore. Patterns starting with `!` are negations that force-include matching paths, overriding other ignore rules (including `.gitignore`) |
 ignored_lines | regular expressions for lines to ignore |
 extraneous_args | if `false`, the action is run "as is" from `bacon.toml`, eg: no `--all-features` or `--features` inclusion | `true`
@@ -110,6 +110,7 @@ need_stdout = true
 
 Note: Some tools detect that their output is piped and don't add style information unless you add a parameter which usually looks like `--color always`.
 This isn't normally necessary for cargo because bacon, by default, sets the `CARGO_TERM_COLOR` environment variable.
+Color libraries used by your tests may also drop colors when piped; several of them (eg `colored`) honor `env.CLICOLOR_FORCE = "1"` set on the job.
 
 ## Analyzers
 
@@ -341,7 +342,7 @@ When not defined, the applied default is `first`.
 In the default `bacon.toml`, the `run` and `run-long` jobs have `scroll_anchor = "auto"` which means that:
 
 * if errors were recorded, the default sticky position is the first item
-* if there was no error, the default stiky item is the last one (bacon then acting as `tail` to follow new lines)
+* if there was no error, the default sticky item is the last one (bacon then acting as `tail` to follow new lines)
 
 ## listen
 
@@ -414,20 +415,29 @@ on_success = "play-sound(name=bepop,volume=42)"
 
 ## Skin
 
-Most colors of the bacon application can be redefined in a `skin`, with colors being [8 bit ANSI values](https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit).
+Most colors of the bacon application can be redefined in a `skin`.
 
 You can set colors within a `[skin]` object in any configuration file:
 
 ```TOML
 [skin]
 status_fg = 251
-status_bg = 4
-key_fg = 11
+status_bg = "#204060"
+key_fg = "rgb(255, 187, 0)"
 status_key_fg = 11
-project_name_badge_fg = 11
-project_name_badge_bg = 69
+project_name_badge_fg = "gray(20)"
+project_name_badge_bg = "darkblue"
 ```
-and you can override colors in a job:
+
+A color given as an integer is an [8 bit ANSI value](https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit).
+A color may also be given as a string:
+
+* `"rgb(255, 187, 0)"` or `"#fb0"` for RGB colors (which need a terminal supporting them)
+* `"gray(5)"` for one of the 24 gray levels of the ANSI palette, from `gray(0)` (black) to `gray(23)` (white)
+* `"ansi(208)"` for an ANSI value
+* a color name among `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`, `grey`, `darkred`, `darkgreen`, `darkyellow`, `darkblue`, `darkmagenta`, `darkcyan`
+
+You can override colors in a job:
 
 ```TOML
 [jobs.test]
@@ -436,5 +446,5 @@ need_stdout = true
 skin.status_bg = 6
 ```
 
-All available skin entries, with meaning and default values, are listed in [src/conf/skin.rs](https://github.com/Canop/bacon/blob/main/src/conf/skin.rs#62).
+All available skin entries, with meaning and default values, are listed in [src/conf/skin.rs](https://github.com/Canop/bacon/blob/main/src/conf/skin.rs#L47).
 Skin entries may be added or removed in minor versions of bacon. Unrecognized entries are just ignored.

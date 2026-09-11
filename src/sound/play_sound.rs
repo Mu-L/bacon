@@ -94,7 +94,7 @@ const DEFAULT_SOUNDS: [(&str, Sound); 15] = [
 /// There are too kinds of sounds: default and custom.
 ///
 /// Names here are as near as possible from the file names in the
-/// reources directory but without the number, syntax unconsistency and
+/// resources directory but without the number, syntax inconsistency and
 /// redundancy. Resource file names are kept identical to their original
 /// names to ease retrieval for attribution).
 fn get_sound(name: Option<&str>) -> Result<Sound, SoundError> {

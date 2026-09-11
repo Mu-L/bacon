@@ -1,62 +1,41 @@
 use {
+    crate::SkinColor,
     paste::paste,
     schemars::JsonSchema,
     serde::Deserialize,
     termimad::crossterm::style::Color,
 };
 
-/// Define a `BaconSkin` struct with fields being u8 with default values.
+/// Define a `BaconSkin` struct with optional color fields, each one
+/// with a getter returning the set color or a default one, given
+/// as an ANSI color code.
 macro_rules! BaconSkin {
     (
         $( $(#[$meta:meta])* $name:ident: $default:literal, )*
     ) => {
         paste! {
-            $(
-                $(#[$meta])*
-                #[doc=concat!(" - default value: ", stringify!($default))]
-                #[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, JsonSchema)]
-                #[serde(untagged)]
-                pub enum [<Defaulting$name:camel>] {
-                    Set(u8),
-                    #[default]
-                    Unset,
-                }
-                impl [<Defaulting$name:camel>] {
-                    pub fn value(self) -> u8 {
-                        match self {
-                            Self::Set(value) => value,
-                            Self::Unset => $default,
-                        }
-                    }
-                    pub fn apply(&mut self, other: Self) {
-                        if let Self::Set(value) = other {
-                            *self = Self::Set(value);
-                        }
-                    }
-                    pub fn color(self) -> Color {
-                        Color::AnsiValue(self.value())
-                    }
-                }
-            )*
             /// Collection of optional color overrides for the Bacon UI.
             #[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, JsonSchema)]
             pub struct BaconSkin {
                 $(
                     $(#[$meta])*
+                    #[doc=concat!(" - default value: ", stringify!($default))]
                     #[serde(default)]
-                    pub $name: [<Defaulting$name:camel>],
+                    pub $name: Option<SkinColor>,
                 )*
             }
             impl BaconSkin {
                 pub fn apply(&mut self, other: Self) {
                     $(
-                        self.$name.apply(other.$name);
+                        if other.$name.is_some() {
+                            self.$name = other.$name;
+                        }
                     )*
                 }
                 $(
                     #[inline]
-                    pub fn [<$name>](&self) -> u8 {
-                        self.$name.value()
+                    pub fn [<$name>](&self) -> Color {
+                        self.$name.map_or(Color::AnsiValue($default), SkinColor::color)
                     }
                 )*
             }
@@ -116,6 +95,8 @@ BaconSkin! {
     computing_bg: 204,
     /// Foreground color of search matches
     found_fg: 208,
+    /// Foreground color of the selected search match
+    found_selected_fg: 0,
     /// Background color of the selected search match
     found_selected_bg: 208,
     /// Foreground color of the '/' search prefix
@@ -144,18 +125,28 @@ fn test_bacon_skin_defaults() {
         project_name_badge_fg = 0
     ";
     let mut a = toml::from_str::<BaconSkin>(a).unwrap();
-    assert_eq!(a.status_fg(), 255);
-    assert_eq!(a.status_bg(), 239);
-    let b = r"
+    assert_eq!(a.status_fg(), Color::AnsiValue(255));
+    assert_eq!(a.status_bg(), Color::AnsiValue(239));
+    let b = r##"
         status_key_fg = 206
         status_bg = 100
-    ";
+        menu_bg = "#204060"
+    "##;
     let b = toml::from_str::<BaconSkin>(b).unwrap();
     a.apply(b);
-    assert_eq!(a.status_fg(), 255);
-    assert_eq!(a.status_bg(), 100);
-    assert_eq!(a.key_fg(), 204);
-    assert_eq!(a.status_key_fg(), 206);
-    assert_eq!(a.project_name_badge_fg(), 0);
-    assert_eq!(a.project_name_badge_bg(), 240);
+    assert_eq!(a.status_fg(), Color::AnsiValue(255));
+    assert_eq!(a.status_bg(), Color::AnsiValue(100));
+    assert_eq!(a.key_fg(), Color::AnsiValue(204));
+    assert_eq!(a.status_key_fg(), Color::AnsiValue(206));
+    assert_eq!(a.project_name_badge_fg(), Color::AnsiValue(0));
+    assert_eq!(a.project_name_badge_bg(), Color::AnsiValue(240));
+    assert_eq!(
+        a.menu_bg(),
+        Color::Rgb {
+            r: 0x20,
+            g: 0x40,
+            b: 0x60
+        },
+    );
+    assert!(toml::from_str::<BaconSkin>(r#"status_fg = "nope""#).is_err());
 }

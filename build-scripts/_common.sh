@@ -88,8 +88,13 @@ confirm() { # confirm <question>
     case $reply in [yY] | [yY][eE][sS]) return 0 ;; *) return 1 ;; esac
 }
 
-release_id() { # <version>-<short commit>, e.g. 3.25.0-813af70
-    printf '%s-%s\n' "$(bacon_version)" "$(git rev-parse --short HEAD)"
+# <version>-<short commit>, e.g. 3.25.0-813af70e1c. The abbreviation has a fixed
+# length: `git rev-parse --short` derives it from the clone's object count, so two
+# machines can name the same commit differently and stage into separate dirs.
+release_id() {
+    local sha
+    sha=$(git rev-parse HEAD)
+    printf '%s-%s\n' "$(bacon_version)" "${sha:0:10}"
 }
 
 stage_push() { # stage_push <local-dir>  -> pushes its contents into <dir>/<id>/

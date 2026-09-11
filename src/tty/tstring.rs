@@ -10,7 +10,10 @@ use {
         fmt::Write as _,
         io::Write,
     },
-    termimad::StrFit,
+    termimad::{
+        StrFit,
+        crossterm::style::Color,
+    },
 };
 
 /// a simple representation of a colored and styled string.
@@ -39,11 +42,11 @@ impl TString {
             raw: raw.into(),
         }
     }
-    /// colors are 8bits ansi values
+    /// Build a badge: the content, padded, in bold with the given colors
     pub fn badge(
         con: &str,
-        fg: u8,
-        bg: u8,
+        fg: Color,
+        bg: Color,
     ) -> Self {
         Self {
             csi: csi(fg, bg),
@@ -53,8 +56,8 @@ impl TString {
     pub fn num_badge(
         num: usize,
         cat: &str,
-        fg: u8,
-        bg: u8,
+        fg: Color,
+        bg: Color,
     ) -> Self {
         let raw = if num < 2 {
             format!(" {num} {cat} ")

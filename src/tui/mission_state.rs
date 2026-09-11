@@ -13,10 +13,12 @@ use {
         MadSkin,
         crossterm::{
             cursor,
-            execute,
+            queue,
             style::{
                 Attribute,
                 Print,
+                SetBackgroundColor,
+                SetForegroundColor,
             },
         },
         minimad::{
@@ -60,7 +62,7 @@ pub struct MissionState<'a, 'm> {
     /// number of lines hidden on top due to scroll
     scroll: usize,
     /// `item_idx` of the item which was on top on last draw
-    /// (but not necessarily due to volontary scroll)
+    /// (but not necessarily due to voluntary scroll)
     top_item_idx: usize,
     /// `item_idx` of the item the user scrolled to, if any, which we will try to keep on top when
     /// possible
@@ -83,7 +85,7 @@ pub struct MissionState<'a, 'm> {
     pub search: SearchState,
     /// The dialog that may be displayed over the rest of the UI
     pub dialog: Dialog,
-    /// the prefered scroll anchor, which we try to stick to when the user didn't volontarily
+    /// the preferred scroll anchor, which we try to stick to when the user didn't voluntarily
     /// scroll to another item
     pub scroll_anchor: ScrollAnchor,
 }
@@ -98,12 +100,9 @@ impl<'a, 'm> MissionState<'a, 'm> {
         let skin = mission.job.skin;
         status_skin
             .paragraph
-            .set_fgbg(skin.status_fg.color(), skin.status_bg.color());
-        status_skin.italic = CompoundStyle::new(
-            Some(skin.status_key_fg.color()),
-            None,
-            Attribute::Bold.into(),
-        );
+            .set_fgbg(skin.status_fg(), skin.status_bg());
+        status_skin.italic =
+            CompoundStyle::new(Some(skin.status_key_fg()), None, Attribute::Bold.into());
         let (width, height) = if app_state.headless {
             (50, 50)
         } else {
@@ -407,7 +406,7 @@ impl<'a, 'm> MissionState<'a, 'm> {
         &mut self,
         line: CommandOutputLine,
     ) {
-        let auto_scroll = self.is_scroll_at_prefered_end();
+        let auto_scroll = self.is_scroll_at_preferred_end();
         let line_count_before = self.lines_to_draw_unfiltered().len();
         if let Some(output) = self.output.as_mut() {
             self.report_maker.receive_line(line, output);
@@ -415,8 +414,8 @@ impl<'a, 'm> MissionState<'a, 'm> {
                 self.update_wrap();
             }
             if auto_scroll {
-                // if the user never scrolled, we'll stick to the prefered anchor
-                self.scroll_to_prefered_end();
+                // if the user never scrolled, we'll stick to the preferred anchor
+                self.scroll_to_preferred_end();
             }
         } else {
             self.wrapped_output = None;
@@ -596,8 +595,8 @@ impl<'a, 'm> MissionState<'a, 'm> {
             self.scroll_to_bottom();
         }
     }
-    fn scroll_to_prefered_end(&mut self) {
-        let end = self.prefered_scroll_end();
+    fn scroll_to_preferred_end(&mut self) {
+        let end = self.preferred_scroll_end();
         self.scroll_to_end(end);
     }
     fn current_scroll_end(&self) -> Option<ScrollEnd> {
@@ -615,15 +614,15 @@ impl<'a, 'm> MissionState<'a, 'm> {
     fn is_scroll_at_bottom(&self) -> bool {
         self.scroll + self.page_height() + 1 >= self.content_height()
     }
-    fn is_scroll_at_prefered_end(&self) -> bool {
-        if self.prefered_scroll_end().is_top(self.reverse) {
+    fn is_scroll_at_preferred_end(&self) -> bool {
+        if self.preferred_scroll_end().is_top(self.reverse) {
             self.is_scroll_at_top()
         } else {
             self.is_scroll_at_bottom()
         }
     }
     fn reset_scroll(&mut self) {
-        self.scroll_to_prefered_end();
+        self.scroll_to_preferred_end();
     }
     fn fix_scroll(&mut self) {
         self.scroll = fix_scroll(self.scroll, self.content_height(), self.page_height());
@@ -662,7 +661,7 @@ impl<'a, 'm> MissionState<'a, 'm> {
     pub fn toggle_help(&mut self) {
         self.help_page = match self.help_page {
             Some(_) => None,
-            None => Some(HelpPage::new(self.mission.settings)),
+            None => Some(HelpPage::new(self.mission.settings, &self.mission.job.skin)),
         };
     }
     pub fn toggle_summary_mode(&mut self) {
@@ -760,7 +759,7 @@ impl<'a, 'm> MissionState<'a, 'm> {
             if search_width > 1 {
                 // draw_prefixed_input requires a width > 1
                 let skin = self.mission.job.skin;
-                let csi = format!("\u{1b}[1m\u{1b}[38;5;{}m", skin.search_input_prefix_fg());
+                let csi = csi_bold_fg(skin.search_input_prefix_fg());
                 self.search
                     .draw_prefixed_input(w, 0, y, &csi, search_width)?;
                 help_start += search_width;
@@ -881,9 +880,8 @@ impl<'a, 'm> MissionState<'a, 'm> {
             ));
         }
         if self.search.input_has_content() {
-            // bold, colored foreground
-            let csi_found = format!("\u{1b}[1m\u{1b}[38;5;{}m", skin.found_fg());
-            self.search.add_summary_tstring(&mut t_line, &csi_found);
+            let csi_summary = csi_bold_fg(skin.search_summary_fg());
+            self.search.add_summary_tstring(&mut t_line, &csi_summary);
         }
         let width = self.width as usize;
         let cols = t_line.draw_in(w, width)?;
@@ -902,9 +900,9 @@ impl<'a, 'm> MissionState<'a, 'm> {
         if self.computing {
             write!(
                 w,
-                "\u{1b}[38;5;{}m\u{1b}[48;5;{}m{:^w$}\u{1b}[0m",
-                skin.computing_fg(),
-                skin.computing_bg(),
+                "{}{}{:^w$}{CSI_RESET}",
+                SetForegroundColor(skin.computing_fg()),
+                SetBackgroundColor(skin.computing_bg()),
                 "computing...",
                 w = width
             )?;
@@ -953,7 +951,7 @@ impl<'a, 'm> MissionState<'a, 'm> {
             CommandResult::None => false,
         }
     }
-    pub fn prefered_scroll_end(&self) -> ScrollEnd {
+    pub fn preferred_scroll_end(&self) -> ScrollEnd {
         match self.scroll_anchor {
             ScrollAnchor::Auto => {
                 if self.is_failure() {
@@ -1044,11 +1042,8 @@ impl<'a, 'm> MissionState<'a, 'm> {
             return Ok(());
         }
         let skin = self.mission.job.skin;
-        let csi_found = format!("\u{1b}[1m\u{1b}[38;5;{}m", skin.found_fg()); // bold, colored foreground
-        let csi_found_selected = format!(
-            "\u{1b}[1m\u{1b}[30m\u{1b}[48;5;{}m",
-            skin.found_selected_bg()
-        ); // bold, colored background
+        let csi_found = csi_bold_fg(skin.found_fg());
+        let csi_found_selected = csi(skin.found_selected_fg(), skin.found_selected_bg());
         #[allow(clippy::cast_possible_truncation)]
         let area = Area::new(
             0,
@@ -1145,7 +1140,7 @@ impl<'a, 'm> MissionState<'a, 'm> {
             }
             clear_line(w)?;
             if is_thumb(y.into(), scrollbar) {
-                execute!(w, cursor::MoveTo(area.width, y), Print('▐'.to_string()))?;
+                queue!(w, cursor::MoveTo(area.width, y), Print('▐'.to_string()))?;
             }
         }
         drop(lines);
