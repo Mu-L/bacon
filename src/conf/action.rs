@@ -202,11 +202,12 @@ impl fmt::Display for Action {
             Self::OpenUndismissMenu => write!(f, "open-undismiss-menu"),
             Self::Pause => write!(f, "pause"),
             Self::PlaySound(PlaySoundCommand { name, volume }) => {
-                write!(f, "play-sound(")?;
-                if let Some(name) = name {
-                    write!(f, "name={name},")?;
+                match (name, *volume == Volume::default()) {
+                    (Some(name), true) => write!(f, "play-sound({name})"),
+                    (Some(name), false) => write!(f, "play-sound({name},volume={volume})"),
+                    (None, true) => write!(f, "play-sound"),
+                    (None, false) => write!(f, "play-sound(volume={volume})"),
                 }
-                write!(f, "volume={volume})")
             }
             Self::PreviousMatch => write!(f, "previous-match"),
             Self::Quit => write!(f, "quit"),
@@ -293,10 +294,18 @@ impl FromStr for Action {
             r"^(?:internal:)?copy-unstyled-output$" => Self::CopyUnstyledOutput,
             r"^(?:internal:)?play-sound$" => Self::PlaySound(PlaySoundCommand::default()),
             r"^(?:internal:)?play-sound\((?<props>.*)\)$" => {
-                let iter = regex_captures_iter!(r"([^=,]+)=([^=,]+)", props);
                 let mut volume = Volume::default();
                 let mut name = None;
-                for (_, [prop_name, prop_value]) in iter.map(|c| c.extract()) {
+                for prop in props.split(',') {
+                    let prop = prop.trim();
+                    if prop.is_empty() {
+                        continue;
+                    }
+                    let Some((prop_name, prop_value)) = prop.split_once('=') else {
+                        // a lone parameter is the sound name
+                        name = Some(prop.to_string());
+                        continue;
+                    };
                     let prop_value = prop_value.trim();
                     match prop_name.trim() {
                         "name" => {
@@ -500,6 +509,39 @@ fn test_play_sound_parsing_with_space() {
         let action: Action = string.parse().unwrap();
         assert_eq!(action, Action::PlaySound(psc.clone()));
     }
+}
+
+/// Check the short form of play-sound, where the sound name is given
+/// without the `name=` prefix
+#[test]
+fn test_play_sound_short_form() {
+    use {
+        crate::Action,
+        pretty_assertions::assert_eq,
+    };
+    let cases = [
+        ("play-sound(laugh)", Some("laugh"), 100),
+        ("play-sound( laugh )", Some("laugh"), 100),
+        ("play-sound(laugh,volume=50)", Some("laugh"), 50),
+        ("play-sound(laugh, volume = 50)", Some("laugh"), 50),
+        ("internal:play-sound(laugh)", Some("laugh"), 100),
+        ("play-sound(name=laugh)", Some("laugh"), 100),
+        ("play-sound(volume=50)", None, 50),
+        ("play-sound()", None, 100),
+        ("play-sound", None, 100),
+    ];
+    for (string, name, volume) in cases {
+        let action: Action = string.parse().unwrap();
+        assert_eq!(
+            action,
+            Action::PlaySound(PlaySoundCommand {
+                name: name.map(str::to_string),
+                volume: Volume::new(volume),
+            }),
+            "parsing {string:?}"
+        );
+    }
+    assert!("play-sound(bad=1)".parse::<Action>().is_err());
 }
 
 /// Check that show-item action can be parsed with different formats

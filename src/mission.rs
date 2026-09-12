@@ -254,7 +254,11 @@ impl Mission<'_> {
 
     pub fn sound_player_if_needed(&self) -> Option<SoundPlayer> {
         if self.job.sound.is_enabled() {
-            match SoundPlayer::new(self.job.sound.get_base_volume()) {
+            match SoundPlayer::new(
+                self.job.sound.get_base_volume(),
+                &self.job.sounds,
+                &self.package_directory,
+            ) {
                 Ok(sound_player) => Some(sound_player),
                 Err(e) => {
                     warn!("Failed to initialise sound player: {e}");

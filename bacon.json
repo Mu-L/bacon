@@ -268,6 +268,10 @@
       "description": "Notification sounds",
       "$ref": "#/$defs/SoundConfig"
     },
+    "sounds": {
+      "description": "Sound files, keyed by the name used in the `play-sound` action.\nThey complete and override the sounds embedded in bacon.",
+      "$ref": "#/$defs/SoundLibrary"
+    },
     "summary": {
       "description": "Whether to show diagnostics summarized instead of full",
       "type": [
@@ -968,6 +972,10 @@
           "description": "Notification sounds",
           "$ref": "#/$defs/SoundConfig"
         },
+        "sounds": {
+          "description": "Sound files, keyed by the name used in the `play-sound` action.\nThey complete and override the sounds embedded in bacon.",
+          "$ref": "#/$defs/SoundLibrary"
+        },
         "watch": {
           "description": "A list of directories that will be watched if the job\nis run on a package.\nsrc, examples, tests, and benches are implicitly included\nunless you `set default_watch` to false.",
           "type": [
@@ -1037,6 +1045,32 @@
             "null"
           ]
         }
+      }
+    },
+    "SoundLibrary": {
+      "description": "Sound files, keyed by the name used in the play-sound action.",
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "description": "Path of the sound file.",
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "duration": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path"
+            ]
+          }
+        ]
       }
     }
   }

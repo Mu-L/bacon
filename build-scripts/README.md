@@ -59,18 +59,21 @@ The release matrix lives in `_targets.sh`. Linux and Windows are built with
 targets are built natively on a Mac, because zig produces macOS binaries with
 duplicate linked dylibs.
 
-| Label | Triple | Tool |
-|-------|--------|------|
-| x86-64 GLIBC | `x86_64-unknown-linux-gnu` | zig |
-| MUSL | `x86_64-unknown-linux-musl` | zig |
-| ARM 64 | `aarch64-unknown-linux-gnu` | zig |
-| ARM 64 MUSL | `aarch64-unknown-linux-musl` | zig |
-| Windows | `x86_64-pc-windows-gnu` | zig |
-| macOS ARM | `aarch64-apple-darwin` | native (Mac only) |
-| macOS Intel | `x86_64-apple-darwin` | native (Mac only) |
+| Label | Triple | Tool | Features |
+|-------|--------|------|----------|
+| x86-64 GLIBC | `x86_64-unknown-linux-gnu` | zig | clipboard |
+| MUSL | `x86_64-unknown-linux-musl` | zig | clipboard |
+| ARM 64 | `aarch64-unknown-linux-gnu` | zig | clipboard |
+| ARM 64 MUSL | `aarch64-unknown-linux-musl` | zig | clipboard |
+| Windows | `x86_64-pc-windows-gnu` | zig | clipboard, sound |
+| macOS ARM | `aarch64-apple-darwin` | native (Mac only) | clipboard, sound |
+| macOS Intel | `x86_64-apple-darwin` | native (Mac only) | clipboard, sound |
 
-All are built with the `clipboard` feature and without `sound`, which would
-require alsa on the build and run hosts.
+The Linux targets are built without `sound`: alsa would be needed on the build
+host, and the binary would then require `libasound.so.2` on every machine
+running it, which a CI container usually lacks. Windows and macOS get it, their
+audio API being part of the system. Linux users wanting sound install with
+`cargo install --locked bacon --features "clipboard sound"`.
 
 `DARWIN_METHOD` overrides how the Apple targets are handled: `auto` (default,
 native on a Mac and skipped elsewhere), `native`, or `skip`.

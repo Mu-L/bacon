@@ -81,17 +81,18 @@ line_format = "{item-idx}: {kind} {path}:{line}:{column} {message}"
 #
 # With sound enabled, you may set up sound on a job with eg
 #    on_success = "play-sound(name=90s-game-ui-6,volume=50)"
-#    on_failure = "play-sound(name=beep-warning,volume=100)"
+#    on_failure = "play-sound(beep-warning)"
 [sound]
 enabled = false # set true to allow sound
 base_volume = "100%" # global volume multiplier
 
-# Specify your own sound files, e.g.
-#     bepop = "~/audio/bepop.mp3"
-#
-# Then use its name as usual in a job, e.g.
-#     on_success = "play-sound(name=bepop,volume=42)"
-[sound.collection]
+# Your own sounds, given by path, complete or replace the ones embedded
+# in bacon, eg
+#    bepop = "~/audio/bepop.mp3"
+#    success = { path = "~/audio/tada.ogg", duration = "1500ms" }
+# then use the name in a job, eg
+#    on_success = "play-sound(name=bepop,volume=42)"
+[sounds]
 
 # Uncomment and change the key-bindings you want to define
 # (some of those ones are the defaults and are just here for illustration)

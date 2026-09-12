@@ -119,6 +119,11 @@ pub struct Job {
     #[serde(default)]
     pub sound: SoundConfig,
 
+    /// Sound files, keyed by the name used in the `play-sound` action.
+    /// They complete and override the sounds embedded in bacon.
+    #[serde(default)]
+    pub sounds: SoundLibrary,
+
     /// A list of directories that will be watched if the job
     /// is run on a package.
     /// src, examples, tests, and benches are implicitly included
@@ -272,6 +277,7 @@ impl Job {
             self.show_command_error_code = Some(b);
         }
         self.sound.apply(&job.sound);
+        self.sounds.apply(&job.sounds);
         if let Some(p) = job.workdir.as_ref() {
             self.workdir = Some(p.clone());
         }
@@ -318,8 +324,8 @@ fn test_job_apply() {
         sound: SoundConfig {
             enabled: Some(true),
             base_volume: Some(Volume::from_str("50").unwrap()),
-            collection: None,
         },
+        sounds: toml::from_str(r#"bepop = "~/audio/bepop.mp3""#).unwrap(),
         workdir: Some(PathBuf::from("/path/to/workdir")),
         skin: Default::default(),
         scroll_anchor: Some(ScrollAnchor::Last),

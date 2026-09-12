@@ -40,7 +40,7 @@ x86-64 GLIBC|x86_64-unknown-linux-gnu|zig|clipboard|
 MUSL|x86_64-unknown-linux-musl|zig|clipboard|
 ARM 64|aarch64-unknown-linux-gnu|zig|clipboard|
 ARM 64 MUSL|aarch64-unknown-linux-musl|zig|clipboard|
-Windows|x86_64-pc-windows-gnu|zig|clipboard|
+Windows|x86_64-pc-windows-gnu|zig|clipboard,sound|
 EOF
 }
 
@@ -48,8 +48,8 @@ EOF
 _darwin_rows() {
     case $DARWIN_METHOD in
         native)
-            echo "macOS ARM|aarch64-apple-darwin|native|clipboard"
-            echo "macOS Intel|x86_64-apple-darwin|native|clipboard" ;;
+            echo "macOS ARM|aarch64-apple-darwin|native|clipboard,sound"
+            echo "macOS Intel|x86_64-apple-darwin|native|clipboard,sound" ;;
         skip) : ;;
     esac
 }
@@ -73,8 +73,8 @@ all_release_targets() {
     _matrix_rows | while IFS='|' read -r label triple tool features want; do
         printf '%s|%s|%s|%s\n' "$label" "$triple" "$tool" "$features"
     done
-    echo "macOS ARM|aarch64-apple-darwin|native|clipboard"
-    echo "macOS Intel|x86_64-apple-darwin|native|clipboard"
+    echo "macOS ARM|aarch64-apple-darwin|native|clipboard,sound"
+    echo "macOS Intel|x86_64-apple-darwin|native|clipboard,sound"
 }
 
 # Triples whose binary is already staged for the current release id, one per

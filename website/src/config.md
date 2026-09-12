@@ -387,31 +387,29 @@ enabled = true
 base_volume = "100%" # global volume multiplier
 ```
 
+Bacon embeds those sounds: `2`, `90s-game-ui-6`, `beep-6`, `beep-beep`, `beep-warning`, `bell-chord`, `car-horn`, `convenience-store-ring`, `cow-bells`, `pickup`, `positive-beeps`, `short-beep-tone`, `slash`, `store-scanner`, `success`.
+
+Your own sound files, in MP3, OGG, FLAC or WAV, are declared in a `sounds` map, either at root level or in a specific job. A name which isn't an embedded one adds a sound, a name which is one replaces it:
+
+```TOML
+[sounds]
+bepop = "~/audio/bepop.mp3"
+success = { path = "~/audio/tada.ogg", duration = "1500ms" }
+laugh = { path = "sounds/dwarf-laugh.wav" }
+```
+
+Paths may start with `~` and relative ones are taken from the package directory.
+
+A sound given by its sole path is played until its end. Add a `duration` to cut a file longer than what you want to hear, which also prevents sounds from overlapping when the job is run repeatedly. Embedded sounds are all cut after a short duration.
+
 Sound being enabled, you can add `play-sound` callbacks to jobs, eg
 
 ```TOML
-on_success = "play-sound(name=90s-game-ui-6,volume=50)"
+on_success = "play-sound(laugh)"
 on_failure = "play-sound(name=beep-warning,volume=100)"
 ```
 
-Sound name can be omitted.
-
-If the `default-sounds` feature is enabled, some pre-chosen sounds are available; their names are `2`, `90s-game-ui-6`, `beep-6`, `beep-beep`, `beep-warning`, `bell-chord`, `car-horn`, `convenience-store-ring`, `cow-bells`, `pickup`, `positive-beeps`, `short-beep-tone`, `slash`, `store-scanner`, `success`.
-
-Or, you can add your own sounds.
-
-Add sounds to a root level collection, eg
-
-```TOML
-[sound.collection]
-bepop = "~/audio/bepop.mp3"
-```
-
-then use its name in a job as usual, eg
-
-```TOML
-on_success = "play-sound(name=bepop,volume=42)"
-```
+The name can be omitted: `play-sound` alone plays `store-scanner`.
 
 ## Skin
 

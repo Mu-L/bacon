@@ -407,7 +407,12 @@ fn run_mission(
                 }
                 Action::PlaySound(play_sound_command) => {
                     if let Some(sound_player) = &sound_player {
-                        sound_player.play(play_sound_command.clone());
+                        if let Err(e) = sound_player.play(&play_sound_command) {
+                            warn!("sound error: {e}");
+                            mission_state
+                                .messages
+                                .push(Message::short(format!("`{e}`")));
+                        }
                     } else if !sound_not_enabled_message_already_displayed {
                         let message = {
                             #[cfg(not(feature = "sound"))]

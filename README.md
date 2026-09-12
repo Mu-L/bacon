@@ -36,9 +36,9 @@ Run this command too if you want to update bacon. Configuration has always been 
 
 Some features are disabled by default. You may enable them with
 
-    cargo install --locked bacon --features "clipboard default-sounds"
+    cargo install --locked bacon --features "clipboard sound"
 
-Precompiled binaries are also available at https://dystroy.org/bacon/download/
+Precompiled binaries are also available on the [download page](https://dystroy.org/bacon/download/): the macOS and Windows ones include `clipboard` and `sound`, the Linux ones only `clipboard`.
 
 ## check the current project
 
@@ -118,7 +118,6 @@ Some bacon features can be disabled or enabled at compilation:
 
 * `"clipboard"` - disabled by default : necessary for the `copy-unstyled-output` action
 * `"sound"` - disabled by default : necessary for the `play-sound` action
-* `"default-sounds"` - disabled by default: embed some default sounds for the `play-sound` action
 
 ## Licences
 

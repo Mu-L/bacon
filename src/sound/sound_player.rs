@@ -1,6 +1,9 @@
 use {
     super::*,
-    std::thread,
+    std::{
+        path::Path,
+        thread,
+    },
     termimad::crossbeam::channel::{
         self,
         Sender,
@@ -17,11 +20,19 @@ const MAX_QUEUED_SOUNDS: usize = 2;
 pub struct SoundPlayer {
     thread: Option<thread::JoinHandle<()>>,
     s_die: Option<Sender<()>>,
-    s_sound: Sender<PlaySoundCommand>,
+    s_sound: Sender<(Sound, Volume)>,
+    sounds: SoundLibrary,
 }
 impl SoundPlayer {
-    pub fn new(base_volume: Volume) -> anyhow::Result<Self> {
-        let (s_sound, r_sound) = channel::bounded::<PlaySoundCommand>(MAX_QUEUED_SOUNDS);
+    pub fn new(
+        base_volume: Volume,
+        library: &SoundLibrary,
+        base_dir: &Path,
+    ) -> anyhow::Result<Self> {
+        let mut sounds = DEFAULT_SOUNDS.clone();
+        sounds.apply(library);
+        sounds.resolve_paths(base_dir);
+        let (s_sound, r_sound) = channel::bounded::<(Sound, Volume)>(MAX_QUEUED_SOUNDS);
         let (s_die, r_die) = channel::bounded(1);
         let thread = thread::spawn(move || {
             loop {
@@ -30,14 +41,13 @@ impl SoundPlayer {
                         info!("sound player thread is stopping");
                         break;
                     }
-                    recv(r_sound) -> ps => {
-                        match ps {
-                            Ok(mut ps) => {
+                    recv(r_sound) -> received => {
+                        match received {
+                            Ok((sound, volume)) => {
                                 if !r_die.is_empty() {
                                     continue;
                                 }
-                                ps.volume = ps.volume * base_volume;
-                                match play_sound(&ps, r_die.clone()) {
+                                match sound.play(volume * base_volume, &r_die) {
                                     Ok(()) => {
                                         debug!("sound played");
                                     }
@@ -64,16 +74,28 @@ impl SoundPlayer {
             thread: Some(thread),
             s_die: Some(s_die),
             s_sound,
+            sounds,
         })
     }
-    /// Requests a sound, unless too many of them are already queued
+    /// Request a sound, unless too many of them are already queued.
+    ///
+    /// The sound is resolved here, so that a bad name or a missing file
+    /// is reported to the caller instead of being buried in the log.
     pub fn play(
         &self,
-        sound_command: PlaySoundCommand,
-    ) {
-        if self.s_sound.try_send(sound_command).is_err() {
+        psc: &PlaySoundCommand,
+    ) -> Result<(), SoundError> {
+        debug!("play sound: {psc:#?}");
+        let name = psc.name.as_deref().unwrap_or(DEFAULT_SOUND_NAME);
+        let sound = self
+            .sounds
+            .get(name)
+            .ok_or_else(|| SoundError::UnknownSoundName(name.to_string()))?;
+        sound.check()?;
+        if self.s_sound.try_send((sound.clone(), psc.volume)).is_err() {
             warn!("Too many sounds in the queue, dropping one");
         }
+        Ok(())
     }
     /// Make the beeper thread synchronously stop
     /// (interrupting the current sound if any)

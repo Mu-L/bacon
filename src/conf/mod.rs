@@ -20,10 +20,24 @@ pub use {
     skin_color::*,
 };
 
-use std::path::{
-    Path,
-    PathBuf,
+use std::{
+    borrow::Cow,
+    path::{
+        Path,
+        PathBuf,
+    },
 };
+
+/// Replace a leading `~` with the path of the user's home directory
+pub fn expand_tilde(path: &Path) -> Cow<'_, Path> {
+    let Ok(rest) = path.strip_prefix("~") else {
+        return Cow::Borrowed(path);
+    };
+    match directories_next::UserDirs::new() {
+        Some(user_dirs) => Cow::Owned(user_dirs.home_dir().join(rest)),
+        None => Cow::Borrowed(path),
+    }
+}
 
 /// If the system can manage application preferences, return the
 /// canonical path to the bacon preferences file
