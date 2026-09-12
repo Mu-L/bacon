@@ -12,10 +12,6 @@ env.CARGO_TERM_COLOR = "always"
 # sound.enabled = true
 # sound.base_volume = "20%"
 
-[sounds]
-bell = "trav/sounds/bell.wav"
-laugh = { path = "trav/sounds/dwarf-laugh.wav" }
-
 # This alternative to 'check' demonstrates the use of the JSON output
 # of cargo check - see https://github.com/Canop/bacon/issues/249
 [jobs.json-check]
@@ -52,7 +48,6 @@ command = [
 	"--features", "clipboard,sound",
 ]
 need_stdout = false
-on_success = "play-sound(name=bell)"
 
 [jobs.fmt]
 command = ["cargo", "+nightly", "fmt"]
@@ -75,9 +70,8 @@ command = [
 [jobs.test]
 command = ["cargo", "test"]
 need_stdout = true
-#on_success = "play-sound(name=90s-game-ui-6,volume=50)"
-on_success = "play-sound(name=laugh)"
-on_failure = "play-sound(name=beep-warning,volume=100)"
+#on_success = "play-sound(90s-game-ui-6,volume=50)"
+#on_failure = "play-sound(beep-warning)"
 
 [jobs.doc]
 command = ["cargo", "doc", "--no-deps"]
