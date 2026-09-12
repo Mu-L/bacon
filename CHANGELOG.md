@@ -1,4 +1,5 @@
 ### next
+- a sound interrupts the one being played instead of waiting for its end
 - fewer redraws when the command outputs many lines
 - custom sounds, declared in a `sounds` map - Fix #337
 - the `play-sound` action takes the sound name without the `name=` prefix, eg `play-sound(bepop)`

@@ -6,7 +6,6 @@ use std::{
 
 #[derive(Debug)]
 pub enum SoundError {
-    Interrupted,
     UnknownSoundName(String),
     Read(PathBuf, io::Error),
     RodioStream(rodio::StreamError),
@@ -28,7 +27,6 @@ impl fmt::Display for SoundError {
         f: &mut fmt::Formatter,
     ) -> fmt::Result {
         match self {
-            SoundError::Interrupted => write!(f, "sound interrupted"),
             SoundError::UnknownSoundName(name) => {
                 write!(f, "unknown sound name: {}", name)
             }
